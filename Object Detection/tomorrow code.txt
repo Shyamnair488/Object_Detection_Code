@@ -1,0 +1,65 @@
+sudo apt-get update
+sudo apt-get dist-upgrade
+
+  ###  check camera is enabled
+
+git clone https://github.com/EdjeElectronics/TensorFlow-Lite-Object-Detection-on-Android-and-Raspberry-Pi.git
+
+mv TensorFlow-Lite-Object-Detection-on-Android-and-Raspberry-Pi tflite1
+
+cd tflite1
+
+sudo pip3 install virtualenv
+
+python3 -m venv tflite1-env
+
+source tflite1-env/bin/activate
+
+bash get_pi_requirements.sh
+
+
+##  Download the sample model (which can be found on the Object Detection page of the official TensorFlow website) by issuing:
+wget https://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v1_1.0_quant_2018_06_29.zip
+
+
+
+##  Unzip it to a folder called "Sample_TFLite_model" by issuing (this command automatically creates the folder):
+unzip coco_ssd_mobilenet_v1_1.0_quant_2018_06_29.zip -d Sample_TFLite_model
+
+
+python3 TFLite_detection_webcam.py --modeldir=Sample_TFLite_model
+
+
+##  Open a command terminal and move into the /home/pi/tflite1 directory and activate the tflite1-env virtual environment by issuing:
+cd /home/pi/tflite1
+source tflite1-env/bin/activate
+
+##  Add the Coral package repository to your apt-get distribution list by issuing the following commands:
+echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+sudo apt-get update
+
+
+##  Install the libedgetpu library by issuing:
+sudo apt-get install libedgetpu1-std
+
+##  Google provides a sample Edge TPU model that is compiled from the quantized SSDLite-MobileNet-v2 we used in Step 1e. Download it and move it into the Sample_TFLite_model folder (while simultaneously renaming it to "edgetpu.tflite") by issuing these commands:
+
+wget https://dl.google.com/coral/canned_models/mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite
+
+mv mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite Sample_TFLite_model/edgetpu.tflite
+
+##  Run detection with Edge TPU!
+python3 TFLite_detection_webcam.py --modeldir=Sample_TFLite_model --edgetpu
+
+##  The --edgetpu argument tells the script to use the Coral USB Accelerator and the EdgeTPU-compiled .tflite file. If your model folder has a different name than "Sample_TFLite_model", use that name instead.
+## After a brief initialization period, a window will appear showing the webcam feed with detections drawn on each from. The detection will run SIGNIFICANTLY faster with the Coral USB Accelerator.
+## If you'd like to run the video or image detection scripts with the Accelerator, use these commands:
+
+python3 TFLite_detection_video.py --modeldir=Sample_TFLite_model --edgetpu
+python3 TFLite_detection_image.py --modeldir=Sample_TFLite_model --edgetpu
+
+##  Compile Custom Edge TPU Object Detection Models
+
+
+
